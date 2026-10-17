@@ -26,7 +26,6 @@
             margin: 0; padding: 66px 16px 90px; user-select: none;
         }
 
-        /* YUQORI BALANS PANELI */
         .topbar {
             position: fixed; top: 0; left: 0; right: 0; z-index: 900;
             background: #0f172a; border-bottom: 1px solid var(--card-border);
@@ -370,22 +369,17 @@
         const tg = window.Telegram?.WebApp;
         if (tg) { try { tg.expand(); } catch (e) {} }
 
-        // ====== SOZLAMA ======
-        // Admin bo'limini faqat o'zingizga ochish uchun Telegram ID'ingizni yozing: [123456789]
-        // Bo'sh qolsa (sinov rejimi) hamma ko'radi.
         const ADMIN_IDS = [];
         const myId = tg?.initDataUnsafe?.user?.id || 0;
         const isAdmin = ADMIN_IDS.length === 0 || ADMIN_IDS.includes(myId);
         if (!isAdmin) document.getElementById('nav-admin').style.display = 'none';
 
         const DAY = 86400000;
-        const PERIOD = 30 * DAY;      // bitta oylik to'lov muddati
+        const PERIOD = 30 * DAY;
         const MIN_TOPUP = 5000, MAX_TOPUP = 5000000;
 
-                // [nomi, tavsif, narx]
         const S = (t, d, p) => ({ title: t, desc: d, price: p });
 
-        // Barcha botlarga umumiy xizmatlar
         const COMMON = [
             S('Admin panel', 'Botni Telegram ichidan boshqarish', 10000),
             S('Statistika', 'Foydalanuvchi va faollik hisoboti', 5000),
@@ -532,8 +526,6 @@
               desc: 'Shaxsiy server, 24/7 monitoring, cheksiz foydalanuvchi.' }
         ];
 
-        // ====== MA'LUMOTLAR OMBORI ======
-        // Hozir brauzer xotirasida (sinov). Haqiqiy ishda bularning hammasi SERVERDA bo'lishi shart.
         const LS_KEY = 'makerbot_state_v2';
         const DEFAULT_DB = {
             balance: 0, income: 0, nextId: 1,
@@ -550,7 +542,6 @@
         let DB = loadDB();
         function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); } catch (e) {} }
 
-        // ====== YORDAMCHILAR ======
         const fmt = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + " so'm";
         const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         const $ = id => document.getElementById(id);
@@ -569,8 +560,6 @@
             DB.history = DB.history.slice(0, 60);
         }
 
-        // ====== BOT HOLATI ======
-        // faol / muddati tugagan (to'xtagan) / admin bloklagan
         function botStatus(b) {
             if (b.blocked) return 'blocked';
             if (Date.now() >= b.expiresAt) return 'expired';
@@ -582,7 +571,6 @@
             const d = Math.floor(ms / DAY), h = Math.floor((ms % DAY) / 3600000), m = Math.floor((ms % 3600000) / 60000);
             return d >= 1 ? `${d} kun ${h} soat qoldi` : `${h} soat ${m} daqiqa qoldi`;
         }
-        // Muddati tugagan botlarni to'xtatadi va xabar beradi
         function checkExpiry() {
             let changed = false;
             DB.bots.forEach(b => {
@@ -594,7 +582,6 @@
             if (changed) save();
         }
 
-        // ====== NAVIGATSIYA ======
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.tab === tabId));
@@ -603,7 +590,6 @@
             window.scrollTo(0, 0);
         }
 
-        // ====== BOT KARTALARI ======
         const grid = $('bot-grid-container');
         BOTS.forEach((bot, i) => {
             const d = document.createElement('div');
@@ -614,7 +600,6 @@
             grid.appendChild(d);
         });
 
-        // ====== BOT SOZLASH ======
         let currentBot = null, tierIndex = 0, selected = new Set();
 
         function renderTiers() {
@@ -659,8 +644,7 @@
         }
         function updateTotal() {
             const total = calcTotal(), n = selected.size;
-            $('total-calc-price').innerText = fmt(total);
-            $('price-detail').innerText = `${TIERS[tierIndex].name} tarif` + (n ? ` + ${n} ta xizmat` : '');
+            $('total-calc-price').innerText = fmt(total);$('price-detail').innerText = `${TIERS[tierIndex].name} tarif` + (n ? ` + ${n} ta xizmat` : '');
             const need = total - DB.balance;
             if (need > 0) {
                 $('bal-line').innerHTML = `Balansingiz: ${fmt(DB.balance)} — <span class="bad">yana ${fmt(need)} kerak</span>`;
@@ -673,8 +657,7 @@
         function openCalc(index) {
             currentBot = BOTS[index]; selected.clear(); tierIndex = 0;
             $('modal-bot-icon').innerText = currentBot.icon;
-            $('modal-bot-title').innerText = currentBot.title.toUpperCase();
-            $('modal-bot-price').innerText = `Asosiy narx: ${fmt(currentBot.price)} / oy`;
+            $('modal-bot-title').innerText = currentBot.title.toUpperCase();$('modal-bot-price').innerText = `Asosiy narx: ${fmt(currentBot.price)} / oy`;
             $('specific-title').innerText = `🧩 ${currentBot.title} uchun xizmatlar`;
             renderTiers();
             renderList('specific-container', currentBot.svc, 's');
@@ -684,7 +667,7 @@
             const m = $('calc-modal'); m.style.display = 'block'; m.scrollTop = 0;
             $('price-bar').style.display = 'block';
         }
-        function closeCalc() { $('calc-modal').style.display = 'none'; $('price-bar').style.display = 'none'; }
+        function closeCalc() { $('calc-modal').style.display = 'none';$('price-bar').style.display = 'none'; }
 
         function submitOrder() {
             const total = calcTotal();
@@ -703,7 +686,7 @@
             const bot = {
                 id: DB.nextId++, type: currentBot.id, title: currentBot.title, icon: currentBot.icon,
                 tier: TIERS[tierIndex].name, services, price: total,
-                tokenNo: token.split(':')[0],          // tokenning to'liq matni saqlanmaydi
+                tokenNo: token.split(':')[0],
                 createdAt: Date.now(), expiresAt: Date.now() + PERIOD, blocked: false, notified: false
             };
             DB.bots.unshift(bot);
@@ -712,7 +695,6 @@
             toast(`🎉 ${bot.title} ishga tushdi! Muddat: 30 kun`);
         }
 
-        // ====== BOTLARIM ======
         function renderMyBots() {
             const box = $('mybots-container');
             if (!DB.bots.length) {
@@ -752,7 +734,6 @@
             }
             const wasStopped = botStatus(b) === 'expired';
             DB.balance -= b.price;
-            // to'xtagan bo'lsa — hozirdan boshlab, ishlayotgan bo'lsa — mavjud muddatga qo'shiladi
             b.expiresAt = (wasStopped ? Date.now() : b.expiresAt) + PERIOD;
             b.notified = false;
             addHistory(`${b.title} #${b.id} — oylik to'lov`, -b.price);
@@ -760,10 +741,8 @@
             toast(wasStopped ? `✅ To'lov qabul qilindi. ${b.title} qayta ishga tushdi!` : `✅ ${b.title} 30 kunga uzaytirildi`);
         }
 
-        // ====== BALANS ======
         function renderBalance() {
-            $('top-balance').innerText = fmt(DB.balance);
-            $('wallet-balance').innerText = fmt(DB.balance);
+            $('top-balance').innerText = fmt(DB.balance);$('wallet-balance').innerText = fmt(DB.balance);
         }
         function renderWallet() {
             const mine = DB.requests.filter(r => r.userId === myId).slice(0, 10);
@@ -780,13 +759,10 @@
             ).join('') : `<div class="empty">Hali amallar yo'q</div>`;
         }
 
-        // ====== HISOBNI TO'LDIRISH ======
         function openTopUp(prefill) {
-            $('pay-card-num').innerText = fmtCard(DB.card.number);
-            $('pay-card-name').innerText = 'Egasi: ' + DB.card.name;
+            $('pay-card-num').innerText = fmtCard(DB.card.number);$('pay-card-name').innerText = 'Egasi: ' + DB.card.name;
             $('topup-amount').value = prefill ? Math.max(MIN_TOPUP, Math.ceil(prefill / 1000) * 1000) : '';
-            $('topup-ref').value = '';
-            $('topup-modal').style.display = 'block';
+            $('topup-ref').value = '';$('topup-modal').style.display = 'block';
         }
         function closeTopUp() { $('topup-modal').style.display = 'none'; }
         function setAmount(v) { $('topup-amount').value = v; }
@@ -809,7 +785,6 @@
             toast("📤 So'rov adminga yuborildi. Tasdiqlangach pul tushadi");
         }
 
-        // ====== ADMIN ======
         function renderAdmin() {
             if (!isAdmin) return;
             const pending = DB.requests.filter(r => r.status === 'pending');
@@ -844,7 +819,7 @@
                     </div></div>`;
             }).join('') : `<div class="empty">Botlar yo'q</div>`;
 
-            const ci = $('admin-card-input'), cn = $('admin-name-input');
+            const ci = $('admin-card-input'), cn =$('admin-name-input');
             if (document.activeElement !== ci) ci.value = fmtCard(DB.card.number);
             if (document.activeElement !== cn) cn.value = DB.card.name;
         }
@@ -852,7 +827,6 @@
             if (!isAdmin) return;
             const r = DB.requests.find(x => x.id === id && x.status === 'pending'); if (!r) return;
             r.status = 'approved'; DB.income += r.amount;
-            // Sinov rejimida bitta foydalanuvchi bor. Serverda: aynan r.userId hisobiga tushadi.
             DB.balance += r.amount;
             addHistory("Hisob to'ldirildi (admin tasdiqladi)", r.amount);
             save(); renderAll(); toast(`✓ ${fmt(r.amount)} hisobga tushirildi`);
@@ -877,7 +851,7 @@
             if (!isAdmin) return;
             const b = DB.bots.find(x => x.id === id); if (!b) return;
             b.expiresAt = Date.now() - 1000; b.notified = false;
-            save(); checkExpiry(); renderAll();
+            checkExpiry(); renderAll();
         }
         function saveAdminCard() {
             if (!isAdmin) return;
@@ -888,7 +862,6 @@
             DB.card = { number: num, name }; save(); renderAll(); toast('✓ Karta yangilandi');
         }
 
-        // ====== UMUMIY CHIZISH ======
         function renderAll() {
             checkExpiry();
             renderBalance(); renderMyBots(); renderWallet(); renderAdmin();
