@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOT YARATUVCHI</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b1426;
+            --card-bg: #132238;
+            --card-border: #1e3a5f;
+            --accent-blue: #2563eb;
+            --accent-cyan: #38bdf8;
+            --text-main: #ffffff;
+            --text-sub: #94a3b8;
+            --gold: #fbbf24;
+            --green: #10b981;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 16px;
+            padding-bottom: 100px;
+            user-select: none;
+        }
+
+        .header-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-icon {
+            font-size: 38px;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 10px;
+            border-radius: 16px;
+        }
+
+        .header-text h2 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.5px; }
+        .header-text p { margin: 4px 0 0 0; font-size: 12px; color: var(--text-sub); }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin: 16px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bot-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .bot-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .bot-card:active {
+            transform: scale(0.97);
+            border-color: var(--accent-cyan);
+            background: #1e2d42;
+        }
+
+        .bot-card .icon { font-size: 24px; }
+        .bot-card .title { font-size: 13px; font-weight: 700; color: #fff; }
+        .bot-card .desc { font-size: 10px; color: var(--text-sub); line-height: 1.2; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-color);
+            z-index: 1000;
+            padding: 16px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: none;
+            color: var(--accent-cyan);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0;
+            margin-bottom: 12px;
+        }
+
+        .price-box {
+            background: linear-gradient(135deg, #1e3a5f, #0f233d);
+            border: 1px solid var(--accent-blue);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .price-box .amount {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--accent-cyan);
+            margin-top: 4px;
+        }
+
+        .feature-item {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .feature-item.selected {
+            border-color: var(--accent-cyan);
+            background: #182c47;
+        }
+
+        .feature-info h4 { margin: 0; font-size: 13px; color: #fff; }
+        .feature-info p { margin: 2px 0 0 0; font-size: 10px; color: var(--text-sub); }
+        .feature-price { font-size: 12px; font-weight: 700; color: var(--gold); }
+
+        .checkbox-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .feature-item.selected .checkbox-circle {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: #000;
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: #0f172a;
+            border-top: 1px solid var(--card-border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1001;
+        }
+
+        .btn-continue {
+            background: linear-gradient(90deg, #38bdf8, #2563eb);
+            color: #fff;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+        }
+
+        .token-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+            background: #0b1426;
+            color: #fff;
+            margin: 15px 0;
+            box-sizing: border-box;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="home-page">
+        <div class="header-card">
+            <div class="header-icon">🤖</div>
+            <div class="header-text">
+                <h2>BOT YARATUVCHI</h2>
+                <p>O'z botingizni o'zingiz yarating!</p>
+            </div>
+        </div>
+
+        <div class="section-title">🚀 Bot yaratish (25+ Bot turlari)</div>
+        <div class="bot-grid" id="bot-grid-container"></div>
+    </div>
+
+    <div class="modal" id="calc-modal">
+        <button class="back-btn" onclick="closeCalc()">← Orqaga qarash</button>
+
+        <div class="header-card" style="margin-bottom:12px;">
+            <div class="header-icon" id="modal-bot-icon">📈</div>
+            <div class="header-text">
+                <h2 id="modal-bot-title">SMM BOT YARATISH</h2>
+                <p>O'zingizga kerakli funksiyalarni tanlang</p>
+            </div>
+        </div>
+
+        <div class="price-box">
+            <div style="font-size: 11px; color: var(--text-sub);">Tanlangan bot narxi:</div>
+            <div class="amount" id="total-price-display">15 000 so'm</div>
+        </div>
+
+        <div class="section-title">🧩 Qo'shimcha funksiyalar</div>
+        <div id="features-container"></div>
+
+        <div class="section-title">🔑 Bot Token kiritish</div>
+        <input type="text" id="bot-token-input" class="token-input" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ">
+
+        <div class="bottom-bar">
+            <button class="btn-continue" onclick="submitOrder()">🚀 BUYURTMA BERISH VA ISHGA TUSHIRISH</button>
+        </div>
+    </div>
+
+    <script>
+        let tg = window.Telegram?.WebApp;
+        if (tg) tg.expand();
+
+        const BOTS_DATA = [
+            { id: 'smm', title: 'SMM Bot', icon: '📈', desc: 'Nakrutka va xizmatlar', basePrice: 15000 },
+            { id: 'kino', title: 'Kino Bot', icon: '🎬', desc: 'Kino va kodlar bazasi', basePrice: 15000 },
+            { id: 'music', title: 'Music Bot', icon: '🎵', desc: 'Qo\'shiq va MP3 topuvchi', basePrice: 15000 },
+            { id: 'ai', title: 'AI Bot', icon: '🧠', desc: 'ChatGPT va AI yordamchi', basePrice: 20000 },
+            { id: 'game', title: 'O\'yin Bot', icon: '🎮', desc: 'Mafiya, Quiz, Konkurs', basePrice: 15000 },
+            { id: 'shop', title: 'Savdo Bot', icon: '🛍', desc: 'Buyurtma va katalog', basePrice: 20000 },
+            { id: 'stars', title: 'Telegram Stars Bot', icon: '⭐', desc: 'Stars va Gift lotereya', basePrice: 15000 },
+            { id: 'downloader', title: 'Yuklovchi Bot', icon: '📥', desc: 'Insta, TT, YT downloader', basePrice: 15000 },
+            { id: 'number', title: 'Raqam Bot', icon: '📞', desc: 'Virtual raqamlar va kontakt', basePrice: 15000 },
+            { id: 'currency', title: 'Valyuta Bot', icon: '💱', desc: 'Bank kurslari va konvertor', basePrice: 10000 },
+            { id: 'cheat', title: 'Chit Generator', icon: '⚡', desc: 'Prank va hazil chitlar', basePrice: 10000 },
+            { id: 'contest', title: 'Konkurs & Ball', icon: '🎉', desc: 'Referal konkurs boti', basePrice: 12000 },
+            { id: 'earn', title: 'Pul Ishlash Bot', icon: '💰', desc: 'Vazifa bajarib pul topish', basePrice: 15000 },
+            { id: 'sender', title: 'Xabarchi Bot', icon: '✉️', desc: 'Ommaviy auto-reklama', basePrice: 10000 },
+            { id: 'channel', title: 'Kanal Boshqaruv', icon: '📢', desc: 'Auto-post va Taymer', basePrice: 12000 },
+            { id: 'sub', title: 'Majburiy Obuna', icon: '🔒', desc: 'Kanallarga obuna tekshiruv', basePrice: 10000 },
+            { id: 'order', title: 'Buyurtma Bot', icon: '📦', desc: 'Xizmat qabul qilish', basePrice: 15000 },
+            { id: 'pay', title: 'To\'lov Qabul Bot', icon: '💳', desc: 'Click/Payme avto-to\'lov', basePrice: 18000 },
+            { id: 'stat', title: 'Statistika Bot', icon: '📊', desc: 'Guruh va kanal statistikasi', basePrice: 10000 },
+            { id: 'portfolio', title: 'Portfolio Bot', icon: '💼', desc: 'Xizmat va rezyume ko\'rgazmasi', basePrice: 10000 },
+            { id: 'edu', title: 'Ta\'lim & Test Bot', icon: '📚', desc: 'Onlayn test va kurslar', basePrice: 15000 },
+            { id: 'weather', title: 'Ob-havo Bot', icon: '🌤', desc: 'Haftalik ob-havo ma\'lumoti', basePrice: 8000 },
+            { id: 'book', title: 'Kitob Bot', icon: '📖', desc: 'PDF kitoblar kutubxonasi', basePrice: 12000 },
+            { id: 'chat', title: 'Anonim Chat Bot', icon: '💬', desc: '2 kishi anonim gaplashishi', basePrice: 15000 },
+            { id: 'universal', title: 'Universal Bot', icon: '🌐', desc: 'Barcha imkoniyatlar jamlanmasi', basePrice: 25000 }
+        ];
+
+        const COMMON_SERVICES = [
+            { id: 'admin', title: 'Admin panel', desc: 'Buyurtmalar va foydalanuvchilar boshqaruvi', price: 10000 },
+            { id: 'balance', title: 'Balans tizimi', desc: 'Foydalanuvchi hisobini boshqarish', price: 5000 },
+            { id: 'referral', title: 'Referal tizimi', desc: 'Do\'st taklif qilish bonusi', price: 5000 },
+            { id: 'automsg', title: 'Avto xabar', desc: 'Avtomatik xabar va reklama yuborish', price: 5000 },
+            { id: 'stats', title: 'Statistika', desc: 'Batafsil hisobot va ko\'rsatkichlar', price: 5000 },
+            { id: 'payment', title: 'To\'lov tizimi', desc: 'Payme va Click avto-qabul', price: 10000 }
+        ];
+
+        let currentBot = null;
+        let selectedFeatures = new Set();
+
+        const grid = document.getElementById('bot-grid-container');
+        BOTS_DATA.forEach(bot => {
+            grid.innerHTML += `
+                <div class="bot-card" onclick="openCalc('${bot.id}')">
+                    <div class="icon">${bot.icon}</div>
+                    <div class="title">${bot.title}</div>
+                    <div class="desc">${bot.desc}</div>
+                </div>
+            `;
+        });
+
+        function openCalc(botId) {
+            currentBot = BOTS_DATA.find(b => b.id === botId);
+            selectedFeatures.clear();
+
+            document.getElementById('modal-bot-icon').innerText = currentBot.icon;
+            document.getElementById('modal-bot-title').innerText = currentBot.title.toUpperCase() + ' YARATISH';
+            
+            const container = document.getElementById('features-container');
+            container.innerHTML = '';
+            COMMON_SERVICES.forEach(f => {
+                container.innerHTML += `
+                    <div class="feature-item" id="f-${f.id}" onclick="toggleFeature('${f.id}', ${f.price})">
+                        <div class="feature-info">
+                            <h4>${f.title}</h4>
+                            <p>${f.desc}</p>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="feature-price">+${f.price.toLocaleString('uz-UZ')} so'm</span>
+                            <div class="checkbox-circle" id="cb-${f.id}"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            updateTotal();
+            document.getElementById('calc-modal').style.display = 'block';
+        }
+
+        function closeCalc() {
+            document.getElementById('calc-modal').style.display = 'none';
+        }
+
+        function toggleFeature(fId, price) {
+            const item = document.getElementById(`f-${fId}`);
+            const cb = document.getElementById(`cb-${fId}`);
+
+            if (selectedFeatures.has(fId)) {
+                selectedFeatures.delete(fId);
+                item.classList.remove('selected');
+                cb.innerText = '';
+            } else {
+                selectedFeatures.add(fId);
+                item.classList.add('selected');
+                cb.innerText = '✓';
+            }
+            updateTotal();
+        }
+
+        function updateTotal() {
+            let total = currentBot.basePrice;
+            selectedFeatures.forEach(fId => {
+                const feature = COMMON_SERVICES.find(s => s.id === fId);
+                if (feature) total += feature.price;
+            });
+            document.getElementById('total-price-display').innerText = total.toLocaleString('uz-UZ') + " so'm";
+        }
+
+        function submitOrder() {
+            const token = document.getElementById('bot-token-input').value.trim();
+            if (!token || !token.includes(':')) {
+                alert("Iltimos, BotFather'dan olingan to'g'ri bot tokenini kiriting!");
+                return;
+            }
+
+            const total = document.getElementById('total-price-display').innerText;
+            alert(`🎉 Muvaffaqiyatli!\n\nBot Turi: ${currentBot.title}\nJami Summa: ${total}\n\nBotingiz 1 daqiqada ishga tushiriladi!`);
+            if (tg) tg.close();
+        }
+    </script>
+</body>
+</html>
