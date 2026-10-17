@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOT YARATUVCHI</title>
+    <title>MAKERBOT - Bot Konstruktor</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -16,360 +16,887 @@
             --text-sub: #94a3b8;
             --gold: #fbbf24;
             --green: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
         }
-
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 16px;
-            padding-bottom: 100px;
-            user-select: none;
+            background: var(--bg-color); color: var(--text-main);
+            margin: 0; padding: 66px 16px 90px; user-select: none;
         }
+
+        /* YUQORI BALANS PANELI */
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+            background: #0f172a; border-bottom: 1px solid var(--card-border);
+            padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .topbar .brand { font-weight: 800; font-size: 14px; }
+        .balance-chip {
+            background: linear-gradient(135deg, #1e3a5f, #0f233d);
+            border: 1px solid var(--accent-blue); border-radius: 20px;
+            padding: 6px 12px; font-size: 13px; font-weight: 800; color: var(--gold);
+            cursor: pointer; display: flex; align-items: center; gap: 6px;
+        }
+        .balance-chip small { color: var(--accent-cyan); font-size: 15px; }
+
+        .nav-tabs {
+            position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a;
+            border-top: 1px solid var(--card-border); display: flex;
+            justify-content: space-around; padding: 10px 0; z-index: 1000;
+        }
+        .nav-item {
+            background: none; border: none; color: var(--text-sub); font-size: 11px;
+            display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer;
+        }
+        .nav-item.active { color: var(--accent-cyan); }
+        .nav-item .icon { font-size: 20px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
         .header-card {
             background: linear-gradient(135deg, #1e293b, #0f172a);
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--card-border); border-radius: 20px; padding: 16px;
+            display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
         }
+        .header-icon { font-size: 36px; background: rgba(56,189,248,.1); padding: 10px; border-radius: 16px; }
+        .header-text h2 { margin: 0; font-size: 18px; font-weight: 800; }
+        .header-text p { margin: 4px 0 0; font-size: 12px; color: var(--text-sub); }
 
-        .header-icon {
-            font-size: 38px;
-            background: rgba(56, 189, 248, 0.1);
-            padding: 10px;
-            border-radius: 16px;
+        .section-title { font-size: 14px; font-weight: 700; color: var(--accent-cyan); margin: 18px 0 10px; }
+        .section-sub { font-size: 11px; color: var(--text-sub); margin: -6px 0 10px; }
+
+        .bot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .bot-card, .stat-card {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 16px; padding: 14px; cursor: pointer; transition: all .2s ease;
         }
-
-        .header-text h2 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.5px; }
-        .header-text p { margin: 4px 0 0 0; font-size: 12px; color: var(--text-sub); }
-
-        .section-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--accent-cyan);
-            margin: 16px 0 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .bot-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .bot-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .bot-card:active {
-            transform: scale(0.97);
-            border-color: var(--accent-cyan);
-            background: #1e2d42;
-        }
-
+        .bot-card:active { transform: scale(.97); border-color: var(--accent-cyan); }
         .bot-card .icon { font-size: 24px; }
-        .bot-card .title { font-size: 13px; font-weight: 700; color: #fff; }
-        .bot-card .desc { font-size: 10px; color: var(--text-sub); line-height: 1.2; }
+        .bot-card .title { font-size: 13px; font-weight: 700; margin-top: 6px; }
+        .bot-card .desc { font-size: 10px; color: var(--text-sub); }
+        .bot-card .price { font-size: 11px; font-weight: 800; color: var(--gold); margin-top: 4px; }
+        .stat-card { text-align: center; cursor: default; }
+        .stat-card .num { font-size: 19px; font-weight: 900; }
+        .stat-card .lbl { font-size: 10px; color: var(--text-sub); margin-top: 3px; }
+
+        .btn-action {
+            background: linear-gradient(90deg, #38bdf8, #2563eb); color: #fff; border: none;
+            width: 100%; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 14px;
+            cursor: pointer; margin-top: 10px;
+        }
+        .btn-green { background: linear-gradient(90deg, #10b981, #059669); }
+        .btn-red { background: linear-gradient(90deg, #ef4444, #b91c1c); }
+        .btn-gray { background: #334155; }
+        .btn-sm { width: auto; padding: 7px 12px; font-size: 11px; margin: 0; }
+        .btn-action:disabled { opacity: .5; }
+
+        .card {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 14px; padding: 12px 14px; margin-bottom: 10px;
+        }
+        .card h4 { margin: 0; font-size: 14px; }
+        .card p { margin: 3px 0 0; font-size: 11px; color: var(--text-sub); line-height: 1.4; }
+        .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .empty { text-align: center; color: var(--text-sub); font-size: 12px; padding: 24px 10px; }
+
+        .badge { font-size: 10px; font-weight: 800; padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
+        .b-active { background: rgba(16,185,129,.2); color: var(--green); }
+        .b-expired { background: rgba(239,68,68,.2); color: var(--danger); }
+        .b-blocked { background: rgba(148,163,184,.2); color: var(--text-sub); }
+        .b-pending { background: rgba(245,158,11,.2); color: var(--warning); }
+
+        .warn-box {
+            background: rgba(239,68,68,.1); border: 1px solid var(--danger);
+            border-radius: 10px; padding: 8px 10px; font-size: 11px; color: #fca5a5; margin-top: 8px;
+        }
+        .soon-box {
+            background: rgba(245,158,11,.1); border: 1px solid var(--warning);
+            border-radius: 10px; padding: 8px 10px; font-size: 11px; color: #fcd34d; margin-top: 8px;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #1e3a5f, #0f233d); border: 1px solid var(--accent-blue);
+            border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 16px;
+        }
+        .balance-card .amount { font-size: 34px; font-weight: 900; color: var(--gold); margin: 6px 0; }
+
+        .hist { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .hist .t { font-size: 12px; }
+        .hist .d { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
+        .plus { color: var(--green); font-weight: 800; font-size: 13px; white-space: nowrap; }
+        .minus { color: var(--danger); font-weight: 800; font-size: 13px; white-space: nowrap; }
 
         .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--bg-color);
-            z-index: 1000;
-            padding: 16px;
-            overflow-y: auto;
-            box-sizing: border-box;
+            display: none; position: fixed; inset: 0; background: var(--bg-color);
+            z-index: 2000; padding: 16px; overflow-y: auto;
         }
-
+        #calc-modal { padding-bottom: 190px; }
         .back-btn {
-            background: transparent;
-            border: none;
-            color: var(--accent-cyan);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 0;
-            margin-bottom: 12px;
+            background: transparent; border: none; color: var(--accent-cyan);
+            font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 12px; padding: 0;
         }
-
-        .price-box {
-            background: linear-gradient(135deg, #1e3a5f, #0f233d);
-            border: 1px solid var(--accent-blue);
-            border-radius: 16px;
-            padding: 16px;
-            text-align: center;
-            margin-bottom: 16px;
+        .text-input {
+            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--card-border);
+            background: #0b1426; color: #fff; margin: 8px 0; text-align: center;
+            user-select: text; font-size: 14px;
         }
-
-        .price-box .amount {
-            font-size: 26px;
-            font-weight: 900;
-            color: var(--accent-cyan);
-            margin-top: 4px;
+        .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0; }
+        .chip {
+            background: var(--card-bg); border: 1px solid var(--card-border); color: #fff;
+            border-radius: 20px; padding: 7px 12px; font-size: 12px; cursor: pointer;
         }
+        .chip:active { border-color: var(--accent-cyan); }
 
-        .feature-item {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 14px;
-            padding: 12px 14px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
+        .pay-card {
+            background: linear-gradient(135deg, #1e3a5f, #12263f); border: 1px solid var(--accent-blue);
+            border-radius: 16px; padding: 16px; text-align: center; margin-bottom: 12px;
         }
+        .pay-card .num { font-size: 20px; font-weight: 800; color: var(--accent-cyan); letter-spacing: 1px; margin: 6px 0; }
+        .steps { font-size: 11px; color: var(--text-sub); line-height: 1.7; margin: 10px 0; }
+        .steps b { color: #fff; }
 
-        .feature-item.selected {
+        .svc-item, .tier-item {
+            background: var(--card-bg); border: 2px solid var(--card-border);
+            border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; cursor: pointer; position: relative; transition: all .15s ease;
+        }
+        .svc-item { border-width: 1px; }
+        .svc-item.selected, .tier-item.selected { border-color: var(--accent-cyan); background: #182c47; }
+        .svc-info h4, .tier-info h4 { margin: 0; font-size: 13px; }
+        .svc-info p, .tier-info p { margin: 2px 0 0; font-size: 10px; color: var(--text-sub); line-height: 1.4; }
+        .svc-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .svc-price, .tier-price { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+        .svc-check {
+            width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--card-border);
+            display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900;
+        }
+        .svc-item.selected .svc-check { background: var(--accent-cyan); border-color: var(--accent-cyan); color: #000; }
+        .tier-icon { font-size: 26px; }
+        .tier-info { flex: 1; }
+        .tier-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--card-border); flex-shrink: 0; }
+        .tier-item.selected .tier-radio {
             border-color: var(--accent-cyan);
-            background: #182c47;
+            background: radial-gradient(circle, var(--accent-cyan) 45%, transparent 50%);
         }
-
-        .feature-info h4 { margin: 0; font-size: 13px; color: #fff; }
-        .feature-info p { margin: 2px 0 0 0; font-size: 10px; color: var(--text-sub); }
-        .feature-price { font-size: 12px; font-weight: 700; color: var(--gold); }
-
-        .checkbox-circle {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 2px solid var(--card-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
+        .tier-badge {
+            position: absolute; top: -8px; right: 12px; background: var(--green); color: #000;
+            font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 6px;
         }
-
-        .feature-item.selected .checkbox-circle {
-            background: var(--accent-cyan);
-            border-color: var(--accent-cyan);
-            color: #000;
+        .included-box {
+            background: rgba(16,185,129,.08); border: 1px dashed var(--green);
+            border-radius: 12px; padding: 10px 12px; font-size: 11px; color: var(--text-sub); line-height: 1.5;
         }
+        .included-box b { color: var(--green); }
 
-        .bottom-bar {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: #0f172a;
-            border-top: 1px solid var(--card-border);
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 1001;
+        .price-bar {
+            display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a;
+            border-top: 1px solid var(--accent-blue); padding: 12px 16px; z-index: 2100;
         }
+        .price-bar .sum { font-size: 22px; font-weight: 900; color: var(--gold); }
+        .price-bar .lbl { font-size: 11px; color: var(--text-sub); }
+        .bal-line { font-size: 11px; margin-top: 4px; }
+        .ok { color: var(--green); } .bad { color: var(--danger); }
 
-        .btn-continue {
-            background: linear-gradient(90deg, #38bdf8, #2563eb);
-            color: #fff;
-            border: none;
-            width: 100%;
-            padding: 14px;
-            border-radius: 14px;
-            font-weight: 800;
-            font-size: 14px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
-        }
-
-        .token-input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid var(--card-border);
-            background: #0b1426;
-            color: #fff;
-            margin: 15px 0;
-            box-sizing: border-box;
-            text-align: center;
+        .toast {
+            position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%);
+            background: #1e293b; border: 1px solid var(--accent-cyan); color: #fff;
+            padding: 10px 16px; border-radius: 12px; font-size: 12px; z-index: 5000;
+            max-width: 88%; text-align: center; display: none;
         }
     </style>
 </head>
 <body>
 
-    <div id="home-page">
+    <div class="topbar">
+        <div class="brand">🤖 MAKERBOT</div>
+        <div class="balance-chip" onclick="switchTab('wallet')">
+            💰 <span id="top-balance">0 so'm</span> <small>＋</small>
+        </div>
+    </div>
+
+    <!-- 1. BOTLAR -->
+    <div id="tab-home" class="tab-content active">
         <div class="header-card">
-            <div class="header-icon">🤖</div>
+            <div class="header-icon">🚀</div>
             <div class="header-text">
-                <h2>BOT YARATUVCHI</h2>
-                <p>O'z botingizni o'zingiz yarating!</p>
+                <h2>BOT YARATISH</h2>
+                <p>Botni tanlang, tarif va xizmatlarni belgilang</p>
             </div>
         </div>
-
-        <div class="section-title">🚀 Bot yaratish (25+ Bot turlari)</div>
         <div class="bot-grid" id="bot-grid-container"></div>
     </div>
 
-    <div class="modal" id="calc-modal">
-        <button class="back-btn" onclick="closeCalc()">← Orqaga qarash</button>
-
-        <div class="header-card" style="margin-bottom:12px;">
-            <div class="header-icon" id="modal-bot-icon">📈</div>
+    <!-- 2. MENING BOTLARIM -->
+    <div id="tab-mybots" class="tab-content">
+        <div class="header-card">
+            <div class="header-icon">🤖</div>
             <div class="header-text">
-                <h2 id="modal-bot-title">SMM BOT YARATISH</h2>
-                <p>O'zingizga kerakli funksiyalarni tanlang</p>
+                <h2>MENING BOTLARIM</h2>
+                <p>Oylik to'lov tugasa bot to'xtaydi, to'lasangiz darhol ishga tushadi</p>
+            </div>
+        </div>
+        <div id="mybots-container"></div>
+    </div>
+
+    <!-- 3. BALANS -->
+    <div id="tab-wallet" class="tab-content">
+        <div class="balance-card">
+            <div style="font-size:12px;color:var(--text-sub);">Joriy hisobingiz</div>
+            <div class="amount" id="wallet-balance">0 so'm</div>
+            <button class="btn-action" onclick="openTopUp()">➕ Hisobni to'ldirish</button>
+        </div>
+        <div class="section-title">⏳ To'ldirish so'rovlari</div>
+        <div id="wallet-requests"></div>
+        <div class="section-title">📊 Amallar tarixi</div>
+        <div id="wallet-history"></div>
+    </div>
+
+    <!-- 4. ADMIN -->
+    <div id="tab-admin" class="tab-content">
+        <div class="header-card" style="border-color:var(--gold);">
+            <div class="header-icon">👑</div>
+            <div class="header-text">
+                <h2>ADMIN PANEL</h2>
+                <p>To'lovlar, botlar va karta sozlamalari</p>
             </div>
         </div>
 
-        <div class="price-box">
-            <div style="font-size: 11px; color: var(--text-sub);">Tanlangan bot narxi:</div>
-            <div class="amount" id="total-price-display">15 000 so'm</div>
-        </div>
+        <div class="bot-grid" id="admin-stats"></div>
 
-        <div class="section-title">🧩 Qo'shimcha funksiyalar</div>
-        <div id="features-container"></div>
+        <div class="section-title">🔔 To'lov so'rovlari (kutilmoqda)</div>
+        <div id="admin-requests"></div>
 
-        <div class="section-title">🔑 Bot Token kiritish</div>
-        <input type="text" id="bot-token-input" class="token-input" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ">
+        <div class="section-title">🤖 Barcha botlar</div>
+        <div id="admin-bots"></div>
 
-        <div class="bottom-bar">
-            <button class="btn-continue" onclick="submitOrder()">🚀 BUYURTMA BERISH VA ISHGA TUSHIRISH</button>
+        <div class="section-title">💳 Qabul qilish kartasi</div>
+        <div class="card">
+            <input type="text" id="admin-card-input" class="text-input" placeholder="Karta raqami (16 xona)" inputmode="numeric">
+            <input type="text" id="admin-name-input" class="text-input" placeholder="Karta egasi">
+            <button class="btn-action" onclick="saveAdminCard()">Kartani saqlash</button>
         </div>
     </div>
 
+    <div class="nav-tabs">
+        <button class="nav-item active" data-tab="home" onclick="switchTab('home')"><span class="icon">🚀</span>Yaratish</button>
+        <button class="nav-item" data-tab="mybots" onclick="switchTab('mybots')"><span class="icon">🤖</span>Botlarim</button>
+        <button class="nav-item" data-tab="wallet" onclick="switchTab('wallet')"><span class="icon">💰</span>Balans</button>
+        <button class="nav-item" data-tab="admin" id="nav-admin" onclick="switchTab('admin')"><span class="icon">👑</span>Admin</button>
+    </div>
+
+    <!-- BOT SOZLASH MODALI -->
+    <div class="modal" id="calc-modal">
+        <button class="back-btn" onclick="closeCalc()">← Orqaga qaytish</button>
+        <div class="header-card" style="margin-bottom:8px;">
+            <div class="header-icon" id="modal-bot-icon">📈</div>
+            <div class="header-text">
+                <h2 id="modal-bot-title">BOT</h2>
+                <p id="modal-bot-price"></p>
+            </div>
+        </div>
+        <div class="included-box">
+            <b>✅ Narxga kiritilgan:</b> /start va asosiy menyu, o'zbek tilida interfeys, 24/7 hosting, texnik yordam.
+        </div>
+
+        <div class="section-title">⚡ Bot tezligi (oylik tarif)</div>
+        <div class="section-sub">Bot qanchalik tez javob qaytarishini tanlang</div>
+        <div id="tier-container"></div>
+
+        <div class="section-title" id="specific-title">🧩 Xizmatlar</div>
+        <div class="section-sub">Kerakligini belgilang, keraksizini o'tkazib yuboring</div>
+        <div id="specific-container"></div>
+
+        <div class="section-title">⚙️ Umumiy xizmatlar</div>
+        <div id="common-container"></div>
+
+        <div class="section-title">🔑 BotFather token</div>
+        <input type="text" id="bot-token-input" class="text-input" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" autocomplete="off">
+    </div>
+
+    <div class="price-bar" id="price-bar">
+        <div class="row">
+            <div>
+                <div class="lbl" id="price-detail"></div>
+                <div class="sum" id="total-calc-price">0 so'm</div>
+            </div>
+            <div class="lbl">birinchi oy</div>
+        </div>
+        <div class="bal-line" id="bal-line"></div>
+        <button class="btn-action" id="order-btn" onclick="submitOrder()">🚀 BOTNI YARATISH</button>
+    </div>
+
+    <!-- HISOBNI TO'LDIRISH MODALI -->
+    <div class="modal" id="topup-modal">
+        <button class="back-btn" onclick="closeTopUp()">← Orqaga qaytish</button>
+        <div class="header-card">
+            <div class="header-icon">💳</div>
+            <div class="header-text">
+                <h2>HISOBNI TO'LDIRISH</h2>
+                <p>Kartaga o'tkazing, so'rov yuboring</p>
+            </div>
+        </div>
+
+        <div class="pay-card">
+            <div style="font-size:11px;color:var(--text-sub);">Humo / Uzcard</div>
+            <div class="num" id="pay-card-num"></div>
+            <div style="font-size:12px;" id="pay-card-name"></div>
+            <button class="btn-action btn-sm" style="margin-top:10px;" onclick="copyCard()">📋 Karta raqamini nusxalash</button>
+        </div>
+
+        <div class="steps">
+            <b>1.</b> Yuqoridagi kartaga kerakli summani o'tkazing.<br>
+            <b>2.</b> Pastga summani va chekdagi <b>tranzaksiya raqamini</b> yozing.<br>
+            <b>3.</b> Admin tekshirgach pul hisobingizga tushadi.
+        </div>
+
+        <div class="chips">
+            <div class="chip" onclick="setAmount(10000)">10 000</div>
+            <div class="chip" onclick="setAmount(20000)">20 000</div>
+            <div class="chip" onclick="setAmount(50000)">50 000</div>
+            <div class="chip" onclick="setAmount(100000)">100 000</div>
+        </div>
+        <input type="number" id="topup-amount" class="text-input" placeholder="O'tkazgan summa (so'm)" inputmode="numeric">
+        <input type="text" id="topup-ref" class="text-input" placeholder="Tranzaksiya raqami / chek ID" autocomplete="off">
+        <button class="btn-action" onclick="submitTopUp()">📤 So'rov yuborish</button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
     <script>
-        let tg = window.Telegram?.WebApp;
-        if (tg) tg.expand();
+        const tg = window.Telegram?.WebApp;
+        if (tg) { try { tg.expand(); } catch (e) {} }
 
-        const BOTS_DATA = [
-            { id: 'smm', title: 'SMM Bot', icon: '📈', desc: 'Nakrutka va xizmatlar', basePrice: 15000 },
-            { id: 'kino', title: 'Kino Bot', icon: '🎬', desc: 'Kino va kodlar bazasi', basePrice: 15000 },
-            { id: 'music', title: 'Music Bot', icon: '🎵', desc: 'Qo\'shiq va MP3 topuvchi', basePrice: 15000 },
-            { id: 'ai', title: 'AI Bot', icon: '🧠', desc: 'ChatGPT va AI yordamchi', basePrice: 20000 },
-            { id: 'game', title: 'O\'yin Bot', icon: '🎮', desc: 'Mafiya, Quiz, Konkurs', basePrice: 15000 },
-            { id: 'shop', title: 'Savdo Bot', icon: '🛍', desc: 'Buyurtma va katalog', basePrice: 20000 },
-            { id: 'stars', title: 'Telegram Stars Bot', icon: '⭐', desc: 'Stars va Gift lotereya', basePrice: 15000 },
-            { id: 'downloader', title: 'Yuklovchi Bot', icon: '📥', desc: 'Insta, TT, YT downloader', basePrice: 15000 },
-            { id: 'number', title: 'Raqam Bot', icon: '📞', desc: 'Virtual raqamlar va kontakt', basePrice: 15000 },
-            { id: 'currency', title: 'Valyuta Bot', icon: '💱', desc: 'Bank kurslari va konvertor', basePrice: 10000 },
-            { id: 'cheat', title: 'Chit Generator', icon: '⚡', desc: 'Prank va hazil chitlar', basePrice: 10000 },
-            { id: 'contest', title: 'Konkurs & Ball', icon: '🎉', desc: 'Referal konkurs boti', basePrice: 12000 },
-            { id: 'earn', title: 'Pul Ishlash Bot', icon: '💰', desc: 'Vazifa bajarib pul topish', basePrice: 15000 },
-            { id: 'sender', title: 'Xabarchi Bot', icon: '✉️', desc: 'Ommaviy auto-reklama', basePrice: 10000 },
-            { id: 'channel', title: 'Kanal Boshqaruv', icon: '📢', desc: 'Auto-post va Taymer', basePrice: 12000 },
-            { id: 'sub', title: 'Majburiy Obuna', icon: '🔒', desc: 'Kanallarga obuna tekshiruv', basePrice: 10000 },
-            { id: 'order', title: 'Buyurtma Bot', icon: '📦', desc: 'Xizmat qabul qilish', basePrice: 15000 },
-            { id: 'pay', title: 'To\'lov Qabul Bot', icon: '💳', desc: 'Click/Payme avto-to\'lov', basePrice: 18000 },
-            { id: 'stat', title: 'Statistika Bot', icon: '📊', desc: 'Guruh va kanal statistikasi', basePrice: 10000 },
-            { id: 'portfolio', title: 'Portfolio Bot', icon: '💼', desc: 'Xizmat va rezyume ko\'rgazmasi', basePrice: 10000 },
-            { id: 'edu', title: 'Ta\'lim & Test Bot', icon: '📚', desc: 'Onlayn test va kurslar', basePrice: 15000 },
-            { id: 'weather', title: 'Ob-havo Bot', icon: '🌤', desc: 'Haftalik ob-havo ma\'lumoti', basePrice: 8000 },
-            { id: 'book', title: 'Kitob Bot', icon: '📖', desc: 'PDF kitoblar kutubxonasi', basePrice: 12000 },
-            { id: 'chat', title: 'Anonim Chat Bot', icon: '💬', desc: '2 kishi anonim gaplashishi', basePrice: 15000 },
-            { id: 'universal', title: 'Universal Bot', icon: '🌐', desc: 'Barcha imkoniyatlar jamlanmasi', basePrice: 25000 }
+        // ====== SOZLAMA ======
+        // Admin bo'limini faqat o'zingizga ochish uchun Telegram ID'ingizni yozing: [123456789]
+        // Bo'sh qolsa (sinov rejimi) hamma ko'radi.
+        const ADMIN_IDS = [];
+        const myId = tg?.initDataUnsafe?.user?.id || 0;
+        const isAdmin = ADMIN_IDS.length === 0 || ADMIN_IDS.includes(myId);
+        if (!isAdmin) document.getElementById('nav-admin').style.display = 'none';
+
+        const DAY = 86400000;
+        const PERIOD = 30 * DAY;      // bitta oylik to'lov muddati
+        const MIN_TOPUP = 5000, MAX_TOPUP = 5000000;
+
+                // [nomi, tavsif, narx]
+        const S = (t, d, p) => ({ title: t, desc: d, price: p });
+
+        // Barcha botlarga umumiy xizmatlar
+        const COMMON = [
+            S('Admin panel', 'Botni Telegram ichidan boshqarish', 10000),
+            S('Statistika', 'Foydalanuvchi va faollik hisoboti', 5000),
+            S('Majburiy obuna', 'Kanalga a\'zo bo\'lmaganni o\'tkazmaslik', 3000),
+            S('Referal tizimi', 'Do\'st taklif qilish bonusi', 5000),
+            S('Ommaviy xabar', 'Hammaga reklama/xabar yuborish', 5000),
+            S('Avto-to\'lov (Click/Payme)', 'Bot ichida to\'lov qabul qilish', 10000),
+            S('Ko\'p tillilik', 'O\'zbek / Rus / Ingliz', 4000)
         ];
 
-        const COMMON_SERVICES = [
-            { id: 'admin', title: 'Admin panel', desc: 'Buyurtmalar va foydalanuvchilar boshqaruvi', price: 10000 },
-            { id: 'balance', title: 'Balans tizimi', desc: 'Foydalanuvchi hisobini boshqarish', price: 5000 },
-            { id: 'referral', title: 'Referal tizimi', desc: 'Do\'st taklif qilish bonusi', price: 5000 },
-            { id: 'automsg', title: 'Avto xabar', desc: 'Avtomatik xabar va reklama yuborish', price: 5000 },
-            { id: 'stats', title: 'Statistika', desc: 'Batafsil hisobot va ko\'rsatkichlar', price: 5000 },
-            { id: 'payment', title: 'To\'lov tizimi', desc: 'Payme va Click avto-qabul', price: 10000 }
+        const BOTS = [
+            { id: 'smm', title: 'SMM Bot', icon: '📈', desc: 'Nakrutka va xizmatlar', price: 15000, svc: [
+                S('SMM panel API', 'Tashqi SMM saytdan xizmat olish', 8000),
+                S('Narx ustamasi', 'Har xizmatga foiz qo\'yish', 4000),
+                S('Buyurtmalar tarixi', 'Mijoz buyurtmalarini kuzatish', 3000),
+                S('Promokod va chegirma', 'Kupon tizimi', 4000)] },
+            { id: 'kino', title: 'Kino Bot', icon: '🎬', desc: 'Kino va kodlar bazasi', price: 15000, svc: [
+                S('Kino kodi bazasi', 'Kod yuborib kino olish', 5000),
+                S('Nom bo\'yicha qidiruv', 'Kino nomini yozib topish', 4000),
+                S('Serial qismlari', 'Mavsum va qismlar bo\'yicha', 5000),
+                S('Kanaldan avto-yuklash', 'Kanalga tashlangan kino bazaga tushadi', 6000)] },
+            { id: 'music', title: 'Music Bot', icon: '🎵', desc: 'Qo\'shiq va MP3 topuvchi', price: 12000, svc: [
+                S('Nom bo\'yicha qidiruv', 'Qo\'shiq yoki ijrochi nomi', 5000),
+                S('Matn bo\'yicha topish', 'Qo\'shiq so\'zlaridan topish', 5000),
+                S('Pleylist', 'Sevimli qo\'shiqlar ro\'yxati', 3000),
+                S('Top chart', 'Haftalik mashhur qo\'shiqlar', 3000)] },
+            { id: 'ai', title: 'AI Bot', icon: '🧠', desc: 'ChatGPT va AI yordamchi', price: 20000, svc: [
+                S('Rasm yaratish', 'Matndan rasm chiqarish', 8000),
+                S('Rasmni tahlil qilish', 'Rasm yuborib savol berish', 6000),
+                S('Ovozli xabar', 'Ovozni matnga aylantirish', 6000),
+                S('Kunlik limit tizimi', 'Bepul va pullik so\'rovlar', 5000)] },
+            { id: 'game', title: 'O\'yin Bot', icon: '🎮', desc: 'Mafiya, Quiz, Konkurs', price: 15000, svc: [
+                S('Mafiya o\'yini', 'Guruhda mafiya o\'ynash', 10000),
+                S('Viktorina', 'Savol-javob o\'yini', 5000),
+                S('Reyting jadvali', 'Eng yaxshi o\'yinchilar', 3000),
+                S('Sovrinli konkurs', 'G\'oliblarga yutuq berish', 5000)] },
+            { id: 'shop', title: 'Savdo Bot', icon: '🛍', desc: 'Buyurtma va katalog', price: 20000, svc: [
+                S('Mahsulot katalogi', 'Kategoriya, rasm va narx', 6000),
+                S('Savat', 'Bir nechta mahsulot buyurtmasi', 5000),
+                S('Yetkazib berish', 'Manzil va yetkazish narxi', 4000),
+                S('Buyurtma xabarnomasi', 'Yangi buyurtma adminga keladi', 3000)] },
+            { id: 'stars', title: 'Telegram Stars Bot', icon: '⭐', desc: 'Stars va Gift lotereya', price: 15000, svc: [
+                S('Stars bilan to\'lov', 'Stars qabul qilish', 8000),
+                S('Sovg\'a do\'koni', 'Gift sotish', 8000),
+                S('Lotereya', 'Tasodifiy yutuq o\'yini', 6000),
+                S('Narxlar jadvali', 'Stars narxlarini ko\'rsatish', 2000)] },
+            { id: 'downloader', title: 'Yuklovchi Bot', icon: '📥', desc: 'Insta, TT, YT downloader', price: 15000, svc: [
+                S('Instagram', 'Reels va postlarni yuklash', 5000),
+                S('TikTok', 'Suv belgisiz yuklash', 5000),
+                S('YouTube', 'Video va audio yuklash', 7000),
+                S('Pinterest va boshqalar', 'Qo\'shimcha saytlar', 4000)] },
+            { id: 'number', title: 'Raqam Bot', icon: '📞', desc: 'Virtual raqamlar', price: 15000, svc: [
+                S('Virtual raqam olish', 'Raqam sotib olish', 8000),
+                S('SMS kod qabul', 'Kodni botga yetkazish', 8000),
+                S('Davlat tanlash', 'Turli davlat raqamlari', 3000),
+                S('Raqamlar tarixi', 'Olingan raqamlar ro\'yxati', 3000)] },
+            { id: 'currency', title: 'Valyuta Bot', icon: '💱', desc: 'Bank kurslari', price: 10000, svc: [
+                S('Bank kurslari', 'Kunlik valyuta kursi', 3000),
+                S('Konvertor', 'Valyutani hisoblash', 3000),
+                S('Kripto kurslari', 'BTC, ETH va boshqalar', 4000),
+                S('Kurs ogohlantirishi', 'Kurs o\'zgarsa xabar berish', 4000)] },
+            { id: 'cheat', title: 'Chit Generator', icon: '⚡', desc: 'Prank va hazil', price: 10000, svc: [
+                S('Hazil chitlar', 'Tayyor hazil shablonlar', 3000),
+                S('Prank shablonlar', 'Do\'stga yuborish uchun', 3000),
+                S('Tasodifiy generator', 'Har safar yangi natija', 2000)] },
+            { id: 'contest', title: 'Konkurs & Ball', icon: '🎉', desc: 'Referal konkurs', price: 12000, svc: [
+                S('Ball hisoblash', 'Har taklif uchun ball', 4000),
+                S('Reyting jadvali', 'Eng ko\'p taklif qilganlar', 4000),
+                S('G\'olibni aniqlash', 'Avtomatik g\'olib tanlash', 4000),
+                S('Avto e\'lon', 'Natijani kanalga chiqarish', 3000)] },
+            { id: 'earn', title: 'Pul Ishlash Bot', icon: '💰', desc: 'Vazifa bajarib pul topish', price: 15000, svc: [
+                S('Vazifalar tizimi', 'Vazifa berish va tekshirish', 8000),
+                S('Hamyon va yechish', 'Balans va pul yechish', 8000),
+                S('Kunlik bonus', 'Har kuni kirganga bonus', 3000),
+                S('Soxtalikdan himoya', 'Qalbaki akkauntlarni aniqlash', 6000)] },
+            { id: 'sender', title: 'Xabarchi Bot', icon: '✉️', desc: 'Ommaviy auto-reklama', price: 10000, svc: [
+                S('Rejalashtirilgan yuborish', 'Vaqtini belgilab yuborish', 5000),
+                S('Tugmali reklama', 'Xabar ostida tugmalar', 3000),
+                S('Auditoriya bo\'yicha', 'Guruhlarga ajratib yuborish', 5000),
+                S('Yetkazish hisoboti', 'Nechta odamga yetdi', 3000)] },
+            { id: 'channel', title: 'Kanal Boshqaruv', icon: '📢', desc: 'Auto-post va taymer', price: 12000, svc: [
+                S('Avto-post', 'Postni avtomatik joylash', 5000),
+                S('Taymer', 'Vaqtida chiqarish va o\'chirish', 4000),
+                S('Postga tugmalar', 'Havola va reaksiya tugmalari', 3000),
+                S('Post statistikasi', 'Ko\'rishlar soni', 3000)] },
+            { id: 'sub', title: 'Majburiy Obuna', icon: '🔒', desc: 'Obuna tekshiruvi', price: 10000, svc: [
+                S('Ko\'p kanal tekshiruvi', 'Bir necha kanalga obuna', 4000),
+                S('Obuna tugmalari', 'Chiroyli tugmalar paneli', 2000),
+                S('Homiy kanallar', 'Reklama kanallarini qo\'shish', 4000)] },
+            { id: 'order', title: 'Buyurtma Bot', icon: '📦', desc: 'Xizmat qabul qilish', price: 15000, svc: [
+                S('Buyurtma formasi', 'Mijozdan ma\'lumot yig\'ish', 5000),
+                S('Holatni kuzatish', 'Buyurtma qaysi bosqichda', 4000),
+                S('Mijozga xabar', 'Holat o\'zgarsa xabar yuborish', 3000),
+                S('Fayl biriktirish', 'Rasm va hujjat yuborish', 3000)] },
+            { id: 'pay', title: 'To\'lov Qabul Bot', icon: '💳', desc: 'Click/Payme avto-to\'lov', price: 18000, svc: [
+                S('Click', 'Click orqali qabul qilish', 10000),
+                S('Payme', 'Payme orqali qabul qilish', 10000),
+                S('Chekni tasdiqlash', 'Kartaga o\'tkazma chekini tekshirish', 5000),
+                S('To\'lovlar tarixi', 'Barcha to\'lovlar ro\'yxati', 3000)] },
+            { id: 'stat', title: 'Statistika Bot', icon: '📊', desc: 'Guruh va kanal statistikasi', price: 10000, svc: [
+                S('Guruh statistikasi', 'A\'zolar va xabarlar soni', 5000),
+                S('Faol a\'zolar', 'Eng faollar ro\'yxati', 4000),
+                S('Grafik hisobot', 'Rasmli grafiklar', 5000),
+                S('Kunlik hisobot', 'Har kuni avto-hisobot', 3000)] },
+            { id: 'portfolio', title: 'Portfolio Bot', icon: '💼', desc: 'Xizmat va rezyume', price: 10000, svc: [
+                S('Ishlar galereyasi', 'Rasm va namunalar', 4000),
+                S('Narxlar ro\'yxati', 'Xizmat narxlari', 3000),
+                S('Aloqa tugmasi', 'Bog\'lanish uchun tugma', 2000),
+                S('Mijoz fikrlari', 'Sharhlar bo\'limi', 3000)] },
+            { id: 'edu', title: 'Ta\'lim & Test Bot', icon: '📚', desc: 'Onlayn test va kurslar', price: 15000, svc: [
+                S('Test tizimi', 'Savollar va javoblar', 8000),
+                S('Natijalar', 'Ball va natijalar tarixi', 4000),
+                S('Sertifikat', 'Tugatganga sertifikat berish', 6000),
+                S('Dars materiallari', 'Video va fayllar', 5000)] },
+            { id: 'weather', title: 'Ob-havo Bot', icon: '🌤', desc: 'Haftalik ob-havo', price: 8000, svc: [
+                S('Shahar tanlash', 'Istalgan shahar ob-havosi', 3000),
+                S('Haftalik prognoz', '7 kunlik ma\'lumot', 4000),
+                S('Kunlik xabar', 'Har ertalab avto-xabar', 3000)] },
+            { id: 'book', title: 'Kitob Bot', icon: '📖', desc: 'PDF kitoblar kutubxonasi', price: 12000, svc: [
+                S('Kitob qidiruvi', 'Nom va muallif bo\'yicha', 5000),
+                S('Kategoriyalar', 'Janr bo\'yicha bo\'limlar', 3000),
+                S('PDF yuklash', 'Fayl yuborish', 4000),
+                S('Audio kitob', 'Audio formatdagi kitoblar', 6000)] },
+            { id: 'chat', title: 'Anonim Chat Bot', icon: '💬', desc: 'Anonim gaplashish', price: 15000, svc: [
+                S('Tasodifiy juftlash', 'Ikki kishini ulash', 8000),
+                S('Jins va yosh filtri', 'Suhbatdosh tanlash', 5000),
+                S('Shikoyat tizimi', 'Yomon foydalanuvchini bildirish', 4000),
+                S('Ban tizimi', 'Qoidabuzarni bloklash', 4000)] },
+            { id: 'universal', title: 'Universal Bot', icon: '🌐', desc: 'Barcha imkoniyatlar', price: 25000, svc: [
+                S('Kino moduli', 'Kino va serial bazasi', 5000),
+                S('Yuklovchi moduli', 'Insta, TikTok, YouTube', 5000),
+                S('AI moduli', 'Sun\'iy intellekt suhbati', 8000),
+                S('Do\'kon moduli', 'Katalog va buyurtma', 8000)] }
         ];
 
-        let currentBot = null;
-        let selectedFeatures = new Set();
+        const TIERS = [
+            { icon: '🐢', name: 'Oddiy', price: 3000, speed: '~1 soniya',
+              desc: 'Umumiy serverda ishlaydi. Kam foydalanuvchili botlar uchun.' },
+            { icon: '🚀', name: 'Tezkor', price: 7000, speed: '~0.5 soniya', badge: 'Ommabop',
+              desc: 'Ustuvor navbat. 1 000 tagacha faol foydalanuvchi.' },
+            { icon: '⚡', name: 'Turbo', price: 14000, speed: '~0.1 soniya',
+              desc: 'Alohida resurs ajratiladi. 10 000 tagacha foydalanuvchi.' },
+            { icon: '👑', name: 'Premium', price: 28000, speed: '~0.05 soniya',
+              desc: 'Shaxsiy server, 24/7 monitoring, cheksiz foydalanuvchi.' }
+        ];
 
-        const grid = document.getElementById('bot-grid-container');
-        BOTS_DATA.forEach(bot => {
-            grid.innerHTML += `
-                <div class="bot-card" onclick="openCalc('${bot.id}')">
-                    <div class="icon">${bot.icon}</div>
-                    <div class="title">${bot.title}</div>
-                    <div class="desc">${bot.desc}</div>
-                </div>
-            `;
+        // ====== MA'LUMOTLAR OMBORI ======
+        // Hozir brauzer xotirasida (sinov). Haqiqiy ishda bularning hammasi SERVERDA bo'lishi shart.
+        const LS_KEY = 'makerbot_state_v2';
+        const DEFAULT_DB = {
+            balance: 0, income: 0, nextId: 1,
+            bots: [], requests: [], history: [], refs: [],
+            card: { number: '8600123456789010', name: 'Azizbek B.' }
+        };
+        function loadDB() {
+            try {
+                const s = localStorage.getItem(LS_KEY);
+                if (s) return Object.assign(JSON.parse(JSON.stringify(DEFAULT_DB)), JSON.parse(s));
+            } catch (e) {}
+            return JSON.parse(JSON.stringify(DEFAULT_DB));
+        }
+        let DB = loadDB();
+        function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); } catch (e) {} }
+
+        // ====== YORDAMCHILAR ======
+        const fmt = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + " so'm";
+        const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const $ = id => document.getElementById(id);
+        const fmtCard = n => n.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ');
+        function dateStr(ts) {
+            const d = new Date(ts), p = x => String(x).padStart(2, '0');
+            return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+        }
+        let toastTimer;
+        function toast(msg) {
+            const t = $('toast'); t.innerText = msg; t.style.display = 'block';
+            clearTimeout(toastTimer); toastTimer = setTimeout(() => t.style.display = 'none', 3200);
+        }
+        function addHistory(text, amount) {
+            DB.history.unshift({ ts: Date.now(), text, amount });
+            DB.history = DB.history.slice(0, 60);
+        }
+
+        // ====== BOT HOLATI ======
+        // faol / muddati tugagan (to'xtagan) / admin bloklagan
+        function botStatus(b) {
+            if (b.blocked) return 'blocked';
+            if (Date.now() >= b.expiresAt) return 'expired';
+            return 'active';
+        }
+        function leftText(b) {
+            const ms = b.expiresAt - Date.now();
+            if (ms <= 0) return 'Muddat tugagan';
+            const d = Math.floor(ms / DAY), h = Math.floor((ms % DAY) / 3600000), m = Math.floor((ms % 3600000) / 60000);
+            return d >= 1 ? `${d} kun ${h} soat qoldi` : `${h} soat ${m} daqiqa qoldi`;
+        }
+        // Muddati tugagan botlarni to'xtatadi va xabar beradi
+        function checkExpiry() {
+            let changed = false;
+            DB.bots.forEach(b => {
+                if (botStatus(b) === 'expired' && !b.notified) {
+                    b.notified = true; changed = true;
+                    toast(`⛔ ${b.title} to'xtadi: oylik to'lov muddati tugadi`);
+                }
+            });
+            if (changed) save();
+        }
+
+        // ====== NAVIGATSIYA ======
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.tab === tabId));
+            $('tab-' + tabId).classList.add('active');
+            renderAll();
+            window.scrollTo(0, 0);
+        }
+
+        // ====== BOT KARTALARI ======
+        const grid = $('bot-grid-container');
+        BOTS.forEach((bot, i) => {
+            const d = document.createElement('div');
+            d.className = 'bot-card';
+            d.onclick = () => openCalc(i);
+            d.innerHTML = `<div class="icon">${bot.icon}</div><div class="title">${bot.title}</div>
+                <div class="desc">${bot.desc}</div><div class="price">${fmt(bot.price + TIERS[0].price)}/oy dan</div>`;
+            grid.appendChild(d);
         });
 
-        function openCalc(botId) {
-            currentBot = BOTS_DATA.find(b => b.id === botId);
-            selectedFeatures.clear();
+        // ====== BOT SOZLASH ======
+        let currentBot = null, tierIndex = 0, selected = new Set();
 
-            document.getElementById('modal-bot-icon').innerText = currentBot.icon;
-            document.getElementById('modal-bot-title').innerText = currentBot.title.toUpperCase() + ' YARATISH';
-            
-            const container = document.getElementById('features-container');
-            container.innerHTML = '';
-            COMMON_SERVICES.forEach(f => {
-                container.innerHTML += `
-                    <div class="feature-item" id="f-${f.id}" onclick="toggleFeature('${f.id}', ${f.price})">
-                        <div class="feature-info">
-                            <h4>${f.title}</h4>
-                            <p>${f.desc}</p>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span class="feature-price">+${f.price.toLocaleString('uz-UZ')} so'm</span>
-                            <div class="checkbox-circle" id="cb-${f.id}"></div>
-                        </div>
-                    </div>
-                `;
+        function renderTiers() {
+            const box = $('tier-container'); box.innerHTML = '';
+            TIERS.forEach((t, i) => {
+                const row = document.createElement('div');
+                row.className = 'tier-item' + (i === tierIndex ? ' selected' : '');
+                row.onclick = () => { tierIndex = i; renderTiers(); updateTotal(); };
+                row.innerHTML = `${t.badge ? `<div class="tier-badge">${t.badge}</div>` : ''}
+                    <div class="tier-icon">${t.icon}</div>
+                    <div class="tier-info"><h4>${t.name} <span style="font-size:10px;color:var(--accent-cyan);font-weight:600;">${t.speed}</span></h4><p>${t.desc}</p></div>
+                    <div class="tier-price">+${fmt(t.price)}</div><div class="tier-radio"></div>`;
+                box.appendChild(row);
             });
-
+        }
+        function renderList(containerId, list, prefix) {
+            const box = $(containerId); box.innerHTML = '';
+            list.forEach((svc, i) => {
+                const key = prefix + i;
+                const row = document.createElement('div');
+                row.className = 'svc-item';
+                row.onclick = () => toggleSvc(key, row);
+                row.innerHTML = `<div class="svc-info"><h4>${svc.title}</h4><p>${svc.desc}</p></div>
+                    <div class="svc-right"><span class="svc-price">+${fmt(svc.price)}</span><div class="svc-check"></div></div>`;
+                box.appendChild(row);
+            });
+        }
+        function svcByKey(key) {
+            const i = parseInt(key.slice(1), 10);
+            return key[0] === 's' ? currentBot.svc[i] : COMMON[i];
+        }
+        function toggleSvc(key, row) {
+            const check = row.querySelector('.svc-check');
+            if (selected.has(key)) { selected.delete(key); row.classList.remove('selected'); check.innerText = ''; }
+            else { selected.add(key); row.classList.add('selected'); check.innerText = '✓'; }
             updateTotal();
-            document.getElementById('calc-modal').style.display = 'block';
         }
-
-        function closeCalc() {
-            document.getElementById('calc-modal').style.display = 'none';
+        function calcTotal() {
+            let total = currentBot.price + TIERS[tierIndex].price;
+            selected.forEach(k => { total += svcByKey(k).price; });
+            return total;
         }
-
-        function toggleFeature(fId, price) {
-            const item = document.getElementById(`f-${fId}`);
-            const cb = document.getElementById(`cb-${fId}`);
-
-            if (selectedFeatures.has(fId)) {
-                selectedFeatures.delete(fId);
-                item.classList.remove('selected');
-                cb.innerText = '';
-            } else {
-                selectedFeatures.add(fId);
-                item.classList.add('selected');
-                cb.innerText = '✓';
-            }
-            updateTotal();
-        }
-
         function updateTotal() {
-            let total = currentBot.basePrice;
-            selectedFeatures.forEach(fId => {
-                const feature = COMMON_SERVICES.find(s => s.id === fId);
-                if (feature) total += feature.price;
-            });
-            document.getElementById('total-price-display').innerText = total.toLocaleString('uz-UZ') + " so'm";
+            const total = calcTotal(), n = selected.size;
+            $('total-calc-price').innerText = fmt(total);
+            $('price-detail').innerText = `${TIERS[tierIndex].name} tarif` + (n ? ` + ${n} ta xizmat` : '');
+            const need = total - DB.balance;
+            if (need > 0) {
+                $('bal-line').innerHTML = `Balansingiz: ${fmt(DB.balance)} — <span class="bad">yana ${fmt(need)} kerak</span>`;
+                $('order-btn').innerText = '💳 HISOBNI TO\'LDIRISH';
+            } else {
+                $('bal-line').innerHTML = `Balansingiz: ${fmt(DB.balance)} — <span class="ok">yetarli ✓</span>`;
+                $('order-btn').innerText = '🚀 BOTNI YARATISH (balansdan yechiladi)';
+            }
         }
+        function openCalc(index) {
+            currentBot = BOTS[index]; selected.clear(); tierIndex = 0;
+            $('modal-bot-icon').innerText = currentBot.icon;
+            $('modal-bot-title').innerText = currentBot.title.toUpperCase();
+            $('modal-bot-price').innerText = `Asosiy narx: ${fmt(currentBot.price)} / oy`;
+            $('specific-title').innerText = `🧩 ${currentBot.title} uchun xizmatlar`;
+            renderTiers();
+            renderList('specific-container', currentBot.svc, 's');
+            renderList('common-container', COMMON, 'c');
+            $('bot-token-input').value = '';
+            updateTotal();
+            const m = $('calc-modal'); m.style.display = 'block'; m.scrollTop = 0;
+            $('price-bar').style.display = 'block';
+        }
+        function closeCalc() { $('calc-modal').style.display = 'none'; $('price-bar').style.display = 'none'; }
 
         function submitOrder() {
-            const token = document.getElementById('bot-token-input').value.trim();
-            if (!token || !token.includes(':')) {
-                alert("Iltimos, BotFather'dan olingan to'g'ri bot tokenini kiriting!");
+            const total = calcTotal();
+            if (DB.balance < total) {
+                closeCalc(); openTopUp(total - DB.balance);
+                toast('Avval hisobni to\'ldiring');
                 return;
             }
-
-            const total = document.getElementById('total-price-display').innerText;
-            alert(`🎉 Muvaffaqiyatli!\n\nBot Turi: ${currentBot.title}\nJami Summa: ${total}\n\nBotingiz 1 daqiqada ishga tushiriladi!`);
-            if (tg) tg.close();
+            const token = $('bot-token-input').value.trim();
+            if (!/^\d{6,12}:[A-Za-z0-9_-]{30,}$/.test(token)) {
+                alert("Iltimos, BotFather'dan olingan to'g'ri tokenni kiriting!");
+                return;
+            }
+            DB.balance -= total;
+            const services = [...selected].map(k => svcByKey(k).title);
+            const bot = {
+                id: DB.nextId++, type: currentBot.id, title: currentBot.title, icon: currentBot.icon,
+                tier: TIERS[tierIndex].name, services, price: total,
+                tokenNo: token.split(':')[0],          // tokenning to'liq matni saqlanmaydi
+                createdAt: Date.now(), expiresAt: Date.now() + PERIOD, blocked: false, notified: false
+            };
+            DB.bots.unshift(bot);
+            addHistory(`${bot.title} yaratildi (1-oy)`, -total);
+            save(); closeCalc(); renderAll(); switchTab('mybots');
+            toast(`🎉 ${bot.title} ishga tushdi! Muddat: 30 kun`);
         }
+
+        // ====== BOTLARIM ======
+        function renderMyBots() {
+            const box = $('mybots-container');
+            if (!DB.bots.length) {
+                box.innerHTML = `<div class="empty">Hali bot yaratmadingiz.<br>«Yaratish» bo'limidan boshlang 🚀</div>`;
+                return;
+            }
+            box.innerHTML = DB.bots.map(b => {
+                const st = botStatus(b);
+                const badge = st === 'active' ? '<span class="badge b-active">🟢 Ishlayapti</span>'
+                    : st === 'expired' ? '<span class="badge b-expired">⛔ To\'xtagan</span>'
+                    : '<span class="badge b-blocked">🚫 Bloklangan</span>';
+                let note = `<p>⏱ ${leftText(b)}</p>`, btn = '';
+                if (st === 'expired') {
+                    note += `<div class="warn-box">Oylik to'lov tugagani uchun bot ishlamayapti. To'lov qilsangiz bot <b>darhol</b> qayta ishga tushadi.</div>`;
+                    btn = `<button class="btn-action btn-green" onclick="renewBot(${b.id})">▶️ To'lash va yoqish — ${fmt(b.price)}</button>`;
+                } else if (st === 'blocked') {
+                    note += `<div class="warn-box">Bot admin tomonidan bloklangan. Admin bilan bog'laning.</div>`;
+                } else {
+                    if (b.expiresAt - Date.now() < 3 * DAY)
+                        note += `<div class="soon-box">⚠️ Muddat tugashiga oz qoldi. Botingiz to'xtab qolmasligi uchun uzaytiring.</div>`;
+                    btn = `<button class="btn-action" onclick="renewBot(${b.id})">🔄 30 kunga uzaytirish — ${fmt(b.price)}</button>`;
+                }
+                return `<div class="card">
+                    <div class="row"><h4>${b.icon} ${esc(b.title)} <span style="font-size:10px;color:var(--text-sub);font-weight:400;">#${b.id}</span></h4>${badge}</div>
+                    <p>${esc(b.tier)} tarif • ${b.services.length} ta xizmat • ${fmt(b.price)}/oy</p>
+                    ${b.services.length ? `<p style="font-size:10px;">${b.services.map(esc).join(' • ')}</p>` : ''}
+                    ${note}${btn}</div>`;
+            }).join('');
+        }
+
+        function renewBot(id) {
+            const b = DB.bots.find(x => x.id === id); if (!b) return;
+            if (b.blocked) { toast('Bot bloklangan'); return; }
+            if (DB.balance < b.price) {
+                toast(`Balans yetarli emas. Yana ${fmt(b.price - DB.balance)} kerak`);
+                openTopUp(b.price - DB.balance); return;
+            }
+            const wasStopped = botStatus(b) === 'expired';
+            DB.balance -= b.price;
+            // to'xtagan bo'lsa — hozirdan boshlab, ishlayotgan bo'lsa — mavjud muddatga qo'shiladi
+            b.expiresAt = (wasStopped ? Date.now() : b.expiresAt) + PERIOD;
+            b.notified = false;
+            addHistory(`${b.title} #${b.id} — oylik to'lov`, -b.price);
+            save(); renderAll();
+            toast(wasStopped ? `✅ To'lov qabul qilindi. ${b.title} qayta ishga tushdi!` : `✅ ${b.title} 30 kunga uzaytirildi`);
+        }
+
+        // ====== BALANS ======
+        function renderBalance() {
+            $('top-balance').innerText = fmt(DB.balance);
+            $('wallet-balance').innerText = fmt(DB.balance);
+        }
+        function renderWallet() {
+            const mine = DB.requests.filter(r => r.userId === myId).slice(0, 10);
+            $('wallet-requests').innerHTML = mine.length ? mine.map(r => {
+                const b = r.status === 'pending' ? '<span class="badge b-pending">Kutilmoqda</span>'
+                    : r.status === 'approved' ? '<span class="badge b-active">Tasdiqlandi</span>'
+                    : '<span class="badge b-expired">Rad etildi</span>';
+                return `<div class="card"><div class="row"><div><h4>${fmt(r.amount)}</h4><p>Chek: ${esc(r.ref)} • ${dateStr(r.ts)}</p></div>${b}</div></div>`;
+            }).join('') : `<div class="empty">So'rovlar yo'q</div>`;
+
+            $('wallet-history').innerHTML = DB.history.length ? DB.history.slice(0, 30).map(h => `
+                <div class="card"><div class="hist"><div><div class="t">${esc(h.text)}</div><div class="d">${dateStr(h.ts)}</div></div>
+                <div class="${h.amount >= 0 ? 'plus' : 'minus'}">${h.amount >= 0 ? '+' : '−'}${fmt(Math.abs(h.amount))}</div></div></div>`
+            ).join('') : `<div class="empty">Hali amallar yo'q</div>`;
+        }
+
+        // ====== HISOBNI TO'LDIRISH ======
+        function openTopUp(prefill) {
+            $('pay-card-num').innerText = fmtCard(DB.card.number);
+            $('pay-card-name').innerText = 'Egasi: ' + DB.card.name;
+            $('topup-amount').value = prefill ? Math.max(MIN_TOPUP, Math.ceil(prefill / 1000) * 1000) : '';
+            $('topup-ref').value = '';
+            $('topup-modal').style.display = 'block';
+        }
+        function closeTopUp() { $('topup-modal').style.display = 'none'; }
+        function setAmount(v) { $('topup-amount').value = v; }
+        function copyCard() {
+            const n = DB.card.number.replace(/\s/g, '');
+            if (navigator.clipboard?.writeText) navigator.clipboard.writeText(n).then(() => toast('📋 Karta raqami nusxalandi'), () => toast(n));
+            else toast(n);
+        }
+        function submitTopUp() {
+            const amount = parseInt($('topup-amount').value, 10);
+            const ref = $('topup-ref').value.trim();
+            if (!amount || amount < MIN_TOPUP) { alert(`Eng kam summa: ${fmt(MIN_TOPUP)}`); return; }
+            if (amount > MAX_TOPUP) { alert(`Eng ko'p summa: ${fmt(MAX_TOPUP)}`); return; }
+            if (ref.length < 4) { alert("Tranzaksiya raqamini (kamida 4 belgi) kiriting!"); return; }
+            const key = ref.toLowerCase();
+            if (DB.refs.includes(key)) { alert("Bu chek raqami avval ishlatilgan!"); return; }
+            DB.refs.push(key);
+            DB.requests.unshift({ id: DB.nextId++, userId: myId, amount, ref, ts: Date.now(), status: 'pending' });
+            save(); closeTopUp(); renderAll(); switchTab('wallet');
+            toast("📤 So'rov adminga yuborildi. Tasdiqlangach pul tushadi");
+        }
+
+        // ====== ADMIN ======
+        function renderAdmin() {
+            if (!isAdmin) return;
+            const pending = DB.requests.filter(r => r.status === 'pending');
+            const active = DB.bots.filter(b => botStatus(b) === 'active').length;
+            const stopped = DB.bots.filter(b => botStatus(b) === 'expired').length;
+            const stat = (num, lbl, color) => `<div class="stat-card"><div class="num" style="color:${color}">${num}</div><div class="lbl">${lbl}</div></div>`;
+            $('admin-stats').innerHTML =
+                stat(fmt(DB.income), 'Jami tushum', 'var(--gold)') +
+                stat(pending.length, 'Kutilayotgan to\'lov', 'var(--warning)') +
+                stat(active, 'Ishlayotgan bot', 'var(--green)') +
+                stat(stopped, 'To\'xtagan bot', 'var(--danger)');
+
+            $('admin-requests').innerHTML = pending.length ? pending.map(r => `
+                <div class="card"><h4>${fmt(r.amount)}</h4>
+                <p>Foydalanuvchi ID: ${r.userId || '—'}<br>Chek: ${esc(r.ref)}<br>${dateStr(r.ts)}</p>
+                <div class="btn-row">
+                    <button class="btn-action btn-green btn-sm" onclick="approveReq(${r.id})">✓ Tasdiqlash</button>
+                    <button class="btn-action btn-red btn-sm" onclick="rejectReq(${r.id})">✕ Rad etish</button>
+                </div></div>`).join('') : `<div class="empty">Kutilayotgan so'rov yo'q</div>`;
+
+            $('admin-bots').innerHTML = DB.bots.length ? DB.bots.map(b => {
+                const st = botStatus(b);
+                const badge = st === 'active' ? '<span class="badge b-active">Faol</span>'
+                    : st === 'expired' ? '<span class="badge b-expired">To\'xtagan</span>'
+                    : '<span class="badge b-blocked">Bloklangan</span>';
+                return `<div class="card"><div class="row"><h4>${b.icon} ${esc(b.title)} #${b.id}</h4>${badge}</div>
+                    <p>Token ID: ${esc(b.tokenNo)} • ${esc(b.tier)} • ${fmt(b.price)}/oy<br>${leftText(b)} (${dateStr(b.expiresAt)})</p>
+                    <div class="btn-row">
+                        <button class="btn-action btn-sm" onclick="adminExtend(${b.id})">+30 kun</button>
+                        <button class="btn-action btn-sm ${b.blocked ? 'btn-green' : 'btn-red'}" onclick="adminBlock(${b.id})">${b.blocked ? 'Blokdan chiqarish' : 'Bloklash'}</button>
+                        <button class="btn-action btn-sm btn-gray" onclick="adminExpire(${b.id})">Sinov: muddatni tugat</button>
+                    </div></div>`;
+            }).join('') : `<div class="empty">Botlar yo'q</div>`;
+
+            const ci = $('admin-card-input'), cn = $('admin-name-input');
+            if (document.activeElement !== ci) ci.value = fmtCard(DB.card.number);
+            if (document.activeElement !== cn) cn.value = DB.card.name;
+        }
+        function approveReq(id) {
+            if (!isAdmin) return;
+            const r = DB.requests.find(x => x.id === id && x.status === 'pending'); if (!r) return;
+            r.status = 'approved'; DB.income += r.amount;
+            // Sinov rejimida bitta foydalanuvchi bor. Serverda: aynan r.userId hisobiga tushadi.
+            DB.balance += r.amount;
+            addHistory("Hisob to'ldirildi (admin tasdiqladi)", r.amount);
+            save(); renderAll(); toast(`✓ ${fmt(r.amount)} hisobga tushirildi`);
+        }
+        function rejectReq(id) {
+            if (!isAdmin) return;
+            const r = DB.requests.find(x => x.id === id && x.status === 'pending'); if (!r) return;
+            r.status = 'rejected'; save(); renderAll(); toast('So\'rov rad etildi');
+        }
+        function adminExtend(id) {
+            if (!isAdmin) return;
+            const b = DB.bots.find(x => x.id === id); if (!b) return;
+            b.expiresAt = Math.max(b.expiresAt, Date.now()) + PERIOD; b.notified = false;
+            save(); renderAll(); toast('+30 kun qo\'shildi');
+        }
+        function adminBlock(id) {
+            if (!isAdmin) return;
+            const b = DB.bots.find(x => x.id === id); if (!b) return;
+            b.blocked = !b.blocked; save(); renderAll(); toast(b.blocked ? 'Bot bloklandi' : 'Blok olib tashlandi');
+        }
+        function adminExpire(id) {
+            if (!isAdmin) return;
+            const b = DB.bots.find(x => x.id === id); if (!b) return;
+            b.expiresAt = Date.now() - 1000; b.notified = false;
+            save(); checkExpiry(); renderAll();
+        }
+        function saveAdminCard() {
+            if (!isAdmin) return;
+            const num = $('admin-card-input').value.replace(/\D/g, '');
+            const name = $('admin-name-input').value.trim();
+            if (num.length !== 16) { alert("Karta raqami 16 ta raqamdan iborat bo'lishi kerak!"); return; }
+            if (!name) { alert("Karta egasining ismini kiriting!"); return; }
+            DB.card = { number: num, name }; save(); renderAll(); toast('✓ Karta yangilandi');
+        }
+
+        // ====== UMUMIY CHIZISH ======
+        function renderAll() {
+            checkExpiry();
+            renderBalance(); renderMyBots(); renderWallet(); renderAdmin();
+            if ($('calc-modal').style.display === 'block') updateTotal();
+        }
+        renderAll();
+        setInterval(renderAll, 30000);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) renderAll(); });
     </script>
 </body>
 </html>
